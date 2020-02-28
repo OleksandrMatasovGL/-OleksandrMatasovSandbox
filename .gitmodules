@@ -1,0 +1,6 @@
+[submodule "anyrpc"]
+	path = anyrpc
+	url = ./anyrpc
+[submodule "googletest"]
+	path = googletest
+	url = ./googletest
