@@ -37,14 +37,12 @@ using anyrpc::Value;
 
 int main(int argc, char *argv[]) {
   auto client = std::make_unique<anyrpc::XmlTcpClient>();
-  // std::this_thread::sleep_for(std::chrono::seconds(10));
   try {
     Value params;
     Value result;
     bool success;
 
     client->SetServer(kIPAddress, kRobotPort);
-    // client->SetTimeout(2000);
     // Add the parameters
     // Note that the parameters will be invalidated inside the Call
     params.SetArray();

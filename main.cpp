@@ -35,7 +35,6 @@ int main() {
   std::unique_ptr<anyrpc::XmlTcpServer> server =
       std::make_unique<anyrpc::XmlTcpServer>();
   std::atomic<bool> quit{false};
-  //   std::thread thread([&server, &quit]() {
   server->BindAndListen(common::kRobotPort);
   auto methodManager = server->GetMethodManager();
   methodManager->AddFunction(&Add, "add", "Add two numbers");
