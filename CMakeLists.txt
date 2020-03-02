@@ -28,7 +28,7 @@ option(BUILD_WITH_LOG4CPLUS NO)
 # // display included dirs
 get_property(dirs DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR} PROPERTY INCLUDE_DIRECTORIES)
 foreach(dir ${dirs})
-  message(STATUS "Include dir='${dir}'")
+  message(STATUS ">> Include dir: '${dir}'")
 endforeach()
 # // end display
 
@@ -38,4 +38,8 @@ add_executable(lrpcserve main.cpp)
 target_link_libraries(lrpcserve PRIVATE anyrpc RTTR::Core)
 
 add_subdirectory(unittests)
-#TODO: NEXT do copy dll for unittests
+
+add_custom_command(TARGET lrpcserve POST_BUILD
+    COMMAND ${CMAKE_COMMAND} -E copy $<TARGET_FILE:anyrpc> unittests/Debug  COMMENT ">> Copying library files to unittests"
+    COMMAND ${CMAKE_COMMAND} -E copy $<TARGET_FILE:anyrpc> unittests/Release
+)

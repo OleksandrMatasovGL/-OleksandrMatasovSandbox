@@ -37,19 +37,29 @@ using anyrpc::Value;
 
 int main(int argc, char *argv[]) {
   auto client = std::make_unique<anyrpc::XmlTcpClient>();
+  // std::this_thread::sleep_for(std::chrono::seconds(10));
   try {
+    Value params;
+    Value result;
+    bool success;
+
     client->SetServer(kIPAddress, kRobotPort);
-    client->SetTimeout(kShutdownTimeout);
-    {
-      Value params{};
-      Value result{};
-      bool success{false};
-      // blocking
-      success = client->Call("add", params, result);
-      cout << "success: " << success << ", add:      " << result << "\n";
-    }
+    // client->SetTimeout(2000);
+    // Add the parameters
+    // Note that the parameters will be invalidated inside the Call
+    params.SetArray();
+    params[0] = 5.4;
+    params[1] = 6.0;
+    success = client->Call("add", params, result);
+    cout << "success: " << success << ", add:      " << result << "\n";
+
   } catch (const anyrpc::AnyRpcException &exc) {
     cerr << "Client failed: " << exc.GetCode() << "\n";
+  } catch (const std::exception &exc) {
+    cerr << exc.what() << "\n";
+  } catch (...) {
+    cerr << "Undefined error"
+         << "\n";
   }
   return 0;
 }

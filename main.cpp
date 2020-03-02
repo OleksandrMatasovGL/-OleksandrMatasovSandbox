@@ -34,21 +34,26 @@ int main() {
 
   std::unique_ptr<anyrpc::XmlTcpServer> server =
       std::make_unique<anyrpc::XmlTcpServer>();
+  std::atomic<bool> quit{false};
+  //   std::thread thread([&server, &quit]() {
+  server->BindAndListen(common::kRobotPort);
   auto methodManager = server->GetMethodManager();
   methodManager->AddFunction(&Add, "add", "Add two numbers");
-
-  std::atomic<bool> quit{false};
-  std::thread thread([&server, &quit]() {
-    server->BindAndListen(common::kRobotPort);
+  // TODO(aom): imitate changing of class
+  // object with RTTR lib info
+  server->StartThread();
+  std::thread thread([&quit, &server]() {
     while (!quit) {
       std::this_thread::sleep_for(std::chrono::milliseconds(1024));
       print::connectionSockInfo(*server);
-      std::cout << ".";
+      std::cout << "."
+                << "\n";
     }
   });
   std::this_thread::sleep_for(
       std::chrono::milliseconds(common::kShutdownTimeout));
   quit = true;
+  server->StopThread();
   thread.join();
   print::connectionSockInfo(*server);
   server->Exit();
