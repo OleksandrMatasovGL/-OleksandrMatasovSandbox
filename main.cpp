@@ -1,9 +1,14 @@
-// main.cpp : This file contains the 'main' function. Program execution begins and ends there.
+// Copyright 2020 Oleksandr Matasov
+// main.cpp : This file contains the 'main' function. Program execution begins
+// TODO(Oleksandr Matasov) move server code to server component
 //
 
+#include <atomic>
+#include <chrono>
 #include <iostream>
 #include <memory>
 #include <sstream>
+#include <thread>
 
 #include "export_header.h"
 #include "server.h"
@@ -13,35 +18,39 @@
 #include <anyrpc/xml/xmlserver.h>
 
 #if defined(__CYGWIN__)
-# include <strings.h>
+#include <strings.h>
 #endif
 
 #ifndef _WIN32
-# include <arpa/inet.h>
+#include <arpa/inet.h>
 #endif // WIN32
 
-constexpr int robotPort = 8270;
+#include "common/common.h"
+#include "method.h"
+#include "printer.h"
 
-int main()
-{
-    std::cout << "Starting.\n";
-	std::unique_ptr<anyrpc::XmlTcpServer> server = std::make_unique<anyrpc::XmlTcpServer>();
-	server->BindAndListen(robotPort);
-	{
-		std::list<std::string> ips;
-		std::list<uint32_t> ports;
-		std::stringstream ss;
-		server->GetConnectionsSockInfo(ips, ports);
-		for (auto &ip : ips) {
-			ss << ip << "; ";
-		}
-		ss << " | ports: ";
-		for (auto &ip : ips) {
-			ss << ip << "; ";
-		}
-		ss << "\n";
-		std::cout << ss.str().c_str() << "\n";
-	}
-	server->Exit();
-    std::cout << "Quitting.\n";
+int main() {
+  std::cout << "Starting.\n";
+
+  std::unique_ptr<anyrpc::XmlTcpServer> server =
+      std::make_unique<anyrpc::XmlTcpServer>();
+  auto methodManager = server->GetMethodManager();
+  methodManager->AddFunction(&Add, "add", "Add two numbers");
+
+  std::atomic<bool> quit{false};
+  std::thread thread([&server, &quit]() {
+    server->BindAndListen(common::kRobotPort);
+    while (!quit) {
+      std::this_thread::sleep_for(std::chrono::milliseconds(1024));
+      print::connectionSockInfo(*server);
+      std::cout << ".";
+    }
+  });
+  std::this_thread::sleep_for(
+      std::chrono::milliseconds(common::kShutdownTimeout));
+  quit = true;
+  thread.join();
+  print::connectionSockInfo(*server);
+  server->Exit();
+  std::cout << "Quitting.\n";
 }

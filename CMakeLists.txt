@@ -13,6 +13,8 @@ if (ANYRPC_LIB_BUILD_SHARED)
     endif()
 endif ()
 
+find_package(rttr CONFIG REQUIRED)
+
 # //TODO: add GTest for using for us and building anyrpc with tests
 
 include_directories(anyrpc)
@@ -33,6 +35,7 @@ endforeach()
 add_subdirectory(anyrpc)
 
 add_executable(lrpcserve main.cpp)
-target_link_libraries(lrpcserve PUBLIC anyrpc)
+target_link_libraries(lrpcserve PRIVATE anyrpc RTTR::Core)
 
-
+add_subdirectory(unittests)
+#TODO: NEXT do copy dll for unittests
